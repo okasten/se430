@@ -1,3 +1,6 @@
+from .data import users
+
+
 class User:
     counter = 0
 
@@ -10,7 +13,7 @@ class User:
         User.counter += 1
 
     @classmethod
-    def login(self, email, password):
+    def login(cls, email, password):
         pass
 
     def logout(self):
@@ -30,3 +33,10 @@ class User:
 
     def cancel_rsvp(self, event_id):
         pass
+
+    @classmethod
+    def get_user(cls, user_id):
+        for user in users:
+            if user['id'] == user_id:
+                return user
+        return None
