@@ -1,16 +1,7 @@
-from datetime import datetime
-from event import EventUser
-from .data import users, event_users
-
-
-def logout():
-    exit()
-
 class User:
     counter = 0
 
-    def __init__(self, name, email, password, is_admin, events):
-        self.events = events
+    def __init__(self, name, email, password, is_admin):
         self.name = name
         self.email = email
         self.password = password
@@ -19,53 +10,23 @@ class User:
         User.counter += 1
 
     @classmethod
-    def login(cls, email, password):
-     for user in users:
-     	if user.email == email:
-     		if user.password == password:
-                print("login successfully")
-                return True:
-            else:
-                print("wrong password")
-                return False
-     print("enter correct email id")
-     return False
-     
-    def join_event(self, events):
-        if self.events.id == 0 or 1:
-            events.join()
+    def login(self, email, password):
+        pass
 
-    def create_event(self, start_datetime=datetime, description=str, name=str):
-        for e in self.events:
-            if e['id'] == self.id:
-                e['start_datetime'] = start_datetime
-                e['description'] = description
-                e['name'] = name
-            return self.events.create(e)
+    def logout(self):
+        pass
 
-    def get_all_hosted(self,events):
-        for el in self.events:
-            if el['is_host']:
-                return event_users.get_event_users(el['event_users'])
-            else:
-                return False
+    def join_event(self, event_id):
+        pass
+
+    def create_event(self):
+        pass
 
     def is_host(self, event_id):
-        event_user = EventUser.get_eu(self.id, event_id)
-        if event_user['is_host']:
-            for e in self.events:
-                if e['id'] == self.id:
-                    return e
-        else:
-            return False
+        pass
 
-    def cancel_rsvp(self):
-        if self.id != 0 or 1:
-             clear()
+    def get_all_hosted(self):
+        pass
 
-    @classmethod
-    def get_user(cls, user_id):
-        for user in users:
-            if user['id'] == user_id:
-                return user
-        return None
+    def cancel_rsvp(self, event_id):
+        pass
