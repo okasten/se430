@@ -60,6 +60,80 @@ class MyTestCase(unittest.TestCase):
             },
         ]
 
+    def test_login(self):
+        assert not User.login('abcd@gmail.com', 'password')
+
+    def test_good_login(self):
+        assert User.login('olivia@depaul.edu', 'password')
+
+    def test_bad_password(self):
+        assert not User.login('olivia@depaul.edu', '')
+
+    def test_join_event(self):
+        og_length = len(event_users)
+        user = User('new user', 'new@gmail.com', 'password', False)
+        user.join_event(0)
+
+        assert event_users[-1]['event_id'] == 0
+        assert event_users[-1]['user_id'] == user.id
+        assert not event_users[-1]['is_host']
+        assert len(event_users) == og_length + 1
+
+    def test_create_event(self):
+        user = User('new user', 'new@gmail.com', 'password', False)
+        og_event_length = len(events)
+        user.create_event(date.today(), 'New Event', 'Event C')
+
+        assert len(events) == og_event_length + 1
+        assert events[-1]['start_datetime'] == date.today()
+        assert events[-1]['description'] == 'New Event'
+        assert events[-1]['name'] == 'Event C'
+
+        assert event_users[-1]['user_id'] == user.id
+        assert event_users[-1]['event_id'] == events[-1]['id']
+        assert event_users[-1]['is_host']
+
+    def test_get_all_hosted_admin(self):
+        user = User('new user', 'new@gmail.com', 'password', True)
+        hosted = user.get_all_hosted()
+        assert len(hosted) == len(events)
+
+    def test_get_all_hosted_single(self):
+        user = User('new user', 'new@gmail.com', 'password', False)
+        user.create_event(date.today(), 'New Event', 'Event D')
+
+        hosted = user.get_all_hosted()
+        assert len(hosted) == 1
+
+    def test_is_not_host(self):
+        user = User('new user', 'new@gmail.com', 'password', False)
+        e = Event(date(2021, 3, 10), 'desc', 'name')
+        user.join_event(e.id)
+
+        assert not user.is_host(e.id)
+
+    def test_is_host_admin(self):
+        user = User('new user', 'new@gmail.com', 'password', True)
+        e = Event(date(2021, 3, 10), 'desc', 'name')
+        assert user.is_host(e.id)
+
+    def test_is_host(self):
+        user = User('new user', 'new@gmail.com', 'password', False)
+        user.create_event(date.today(), 'desc', 'name')
+
+        assert user.is_host(events[-1]['id'])
+
+    def test_cancel_rsvp(self):
+        user = User('new user', 'new@gmail.com', 'password', False)
+        e = Event(date(2021, 3, 10), 'desc', 'name')
+        user.join_event(e.id)
+
+        og_eu_len = len(event_users)
+
+        user.cancel_rsvp(e.id)
+        assert len(event_users) == og_eu_len - 1
+        assert not EventUser.get_eu(e.id, user.id)
+
 
 if __name__ == '__main__':
     unittest.main()
