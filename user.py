@@ -1,5 +1,4 @@
 from datetime import datetime
-from turtle import clear
 from event import EventUser
 from .data import users, event_users
 
@@ -21,14 +20,17 @@ class User:
 
     @classmethod
     def login(cls, email, password):
-        if users.email:
-            if users.password:
+     for user in users:
+     	if user.email == email:
+     		if user.password == password:
                 print("login successfully")
+                return True:
             else:
                 print("wrong password")
-        else:
-            print("enter correct email id")
-
+                return False
+     print("enter correct email id")
+     return False
+     
     def join_event(self, events):
         if self.events.id == 0 or 1:
             events.join()
