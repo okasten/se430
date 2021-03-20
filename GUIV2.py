@@ -16,8 +16,10 @@ LARGEFONT =("Verdana", 35)
 
 months=["January","February","March","April","May","June","July","August","September","October","November","December"]
 
-currentUser= None
-
+currentId=-1
+myEvents = list()
+eventDis=list()
+eHelp=list()
 
 
 class calendarApp(tk.Tk):
@@ -57,6 +59,7 @@ class calendarApp(tk.Tk):
 
 
 class RegistrationPage(tk.Frame):
+    
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
@@ -75,7 +78,7 @@ class RegistrationPage(tk.Frame):
 
         EntryPass = ttk.Entry(self)
         EntryPass.grid(row =4, column =1, padx =10, pady =10)
-
+    
 
 
 
@@ -110,6 +113,7 @@ class LoginPage(tk.Frame):
 
         #labels for Page
         label = ttk.Label(self, text ="Login-Page", font = LARGEFONT).grid(row = 0, column = 2, padx = 10, pady = 10)
+        label = ttk.Label(self, text = "", font = ('Arial',15)).grid(row=0,column =2, padx=10, pady=10)
         labelEmail = ttk.Label(self, text ="Please Enter Your Email Address>>").grid(row =3, column =0, padx =10, pady =10)
         labelPass = ttk.Label(self, text ="Please Enter a Password").grid(row =4, column =0, padx =10, pady =10)
 
@@ -130,9 +134,36 @@ class LoginPage(tk.Frame):
 
     def Authenticate(frameSwitcher, em, ps):
         if (user.User.login(em, ps)):
-            currentUser = str (em)
+            print(em)
+            global currentUser,currentId
+            currentUser = em
+            print (currentUser)
+            for u in data.users:
+                if (u['email']==currentUser):
+                    currentId = u['id']
+                    print("Current User is ...:"+str(currentId))
+                    print(currentUser)
+                else:
+                    print("NOT A MATCH")
+                    
+            for eu in data.event_users:
+                if currentId == eu['user_id']:
+                    myEvents.append(eu['event_id'])
+
+            for e in data.events:
+                if e['id'] in myEvents:
+                    eventDis.append(e['description'])
+
+            print('is myEvents Empty?')
+            print(len(myEvents)==0)
+            print('is myDes Empty?')
+            print(len(eventDis)==0)
+            
             frameSwitcher.show_frame(UserPage)
-        else:frameSwitcher.show_frame(LoginPage)
+            UserPage.initialize()
+        else:
+            print("Authentication Failed")
+            frameSwitcher.show_frame(LoginPage)
         
 
 
@@ -140,33 +171,14 @@ class LoginPage(tk.Frame):
 class UserPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-
-        currentId =-1
-    
-        myEvents = []
-        eventDis=[]
-        for u in data.users:
-            if (u['email']==currentUser):
-                currentId = u['id']
-                print(currentId)
-        for eu in data.event_users:
-            if currentId == eu['user_id']:
-                myEvents.append(eu['event_id'])
-
-        for e in data.events:
-            if e['id'] in myEvents:
-                eventDis.append()
-
-        
-        
+        c=0
+        tk.Message
         
         #label = ttk.Label(self, text ="Page 2", font = LARGEFONT)
         
         startingDay = date.today()
         month = months[startingDay.month -1]
-        labelTop = ttk.Label(self, text =month, font = LARGEFONT)
-        labelTop.grid(row = 0, column = 0, padx = 10, pady = 10)
-        
+   
         
         counter =0
         
@@ -177,34 +189,81 @@ class UserPage(tk.Frame):
                 numericalDay = str(calcDay.day)+"th"
                 
                 print(calcDay)
-                self.button = tk.Button(self, text = numericalDay, height =3, width=5, command = lambda: checkDay(numericalDay)).grid(row = j, column = i, padx = 5, pady = 5)
+                self.button = tk.Button(self, text = numericalDay, height =3, width=5, command = lambda: self.checkDay(calcDay)).grid(row = j, column = i, padx = 5, pady = 5)
                 counter=counter+1
-                
+               
 
         # button to show frame 2 with text
         # layout2
-        button1 = tk.Button(self, text ="Quit", height = 2, width = 7, command = lambda : quit).grid(row = 5, column = 1, padx = 10, pady = 10)
+        button1 = tk.Button(self, text ="<<<<>>>>", height = 2, width = 7, command = quit).grid(row = 5, column = 0, padx = 10, pady = 10)
 
-        button2 = tk.Button(self, text ="New Event", command = lambda : controller.show_frame(RegistrationPage)).grid(row = 5, column = 2, padx = 10, pady = 10)
+        button2 = tk.Button(self, text =" Log Out ", command = lambda : controller.show_frame(LoginPage)).grid(row = 5, column = 1, padx = 10, pady = 10)
+
+        button3 = tk.Button(self, text ="<<<<>>>>").grid(row = 5, column = 2, padx = 10, pady = 10)
+
+        button4 = tk.Button(self, text ="New-Event", command = UserPage.makeNewEvent).grid(row = 5, column = 3, padx = 10, pady = 10)
+
+        button5 = tk.Button(self, text ="<<<<>>>>").grid(row = 5, column = 4, padx = 10, pady = 10)
 
 
-        ###after row 5 we create a table of events that User has rsvp'd to using data file
-        print(currentId)
-        if (len(myEvents)!=0):
-            c=0
-            for num in range(7,8+len(myEvents)):
-                des= eventDis[c]
-                label = ttk.Label(self, text =des, font =('Arial',15)).grid(row = num, column = 1, padx =5, pady=5)
-                button = tk.Button(self, text = "Cancel RSVP", command= cancel(c)).grid(row = num, column =2, padx=5, pady =5)
-            
-    def checkDay(datetime):
-        print(datetime.now())
+        button7 = tk.Button(self, text ="Next-2wk").grid(row = 5, column = 5, padx = 10, pady = 10)
+
+        button8 = tk.Button(self, text ="Prev-2wk").grid(row = 5, column = 6, padx = 10, pady = 10)
+
         
+
+
+        ###after column 6 start at row 0 to how ever many events, we create a table of events that User has rsvp'd to using data file
+        #find the userId of current User
+
+
+    def makeNewEvent():
+        creationGui = tk.Tk()
+        creationGui.title("Create A New Event")
+        LabelTitle = tk.Label(creationGui, text ="Please Enter your events Name:->").grid(row=3, column =1)
+        TitleIn = tk.Entry(creationGui).grid(row=3, column=2)
+        
+        exitButton = tk.Button(creationGui, text="Exit", command= quit).grid(row = 7, column = 0, padx=5, pady=5)
+        creationGui.mainloop()
+        
+
+
+    def cancel():
+        print("cancel Function")
+        print(e_id)
+    def checkDay(datetimei):
+        print("entered checkday function")
     def createCalendar(direction):
         print("Calendar")
+        
+    def  initialize():
+        eventGui = tk.Tk()
+        eventGui.title("My-Events")
+        print("initializing in method initialize now----")
+        print(currentUser)
+        print('currentID:'+str(currentId))
+        if (len(myEvents)!=0):
+        
+            print('length of event Dis list')
+            print(len(eventDis))
+            for num in range(0,len(myEvents)):
+                label = tk.Label(eventGui, text=eventDis[num] ).grid(row = num, column = 0, padx =5, pady=5)
+                button = tk.Button(eventGui,text='Cancel RSVP', command=lambda:UserPage.cancel).grid(row=num, column = 1, padx=5, pady =5)
+                
+        else:
+            print("didnt Initialize EVENTS")
+            label = tk.Label(eventGui, text='YOU CURRENTLY HAVE NO EVENTS PLEASE RSVP', font=LARGEFONT ).grid(row = num, column = 0, padx =5, pady=5)
 
+        exitButton = tk.Button(eventGui, text="Exit", command= quit).grid(row = len(myEvents)+1, column = 0, padx=5, pady=5)
+        eventGui.mainloop()
 
+        
 
+        
+     
+        
+
+        
 class AdminPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
