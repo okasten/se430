@@ -147,23 +147,9 @@ class LoginPage(tk.Frame):
                 else:
                     print("NOT A MATCH")
 
-            global myEvents
-            myEvents=list()
-            for eu in data.event_users:
-                if currentId == eu['user_id']:
-                    myEvents.append(eu['event_id'])
-
-            for e in data.events:
-                if e['id'] in myEvents:
-                    eventDis.append(e['description'])
-
-            print('is myEvents Empty?')
-            print(len(myEvents)==0)
-            print('is myDes Empty?')
-            print(len(eventDis)==0)
+            
             
             frameSwitcher.show_frame(UserPage)
-            UserPage.initialize(True)
         else:
             print("Authentication Failed")
             frameSwitcher.show_frame(LoginPage)
@@ -205,20 +191,20 @@ class UserPage(tk.Frame):
 
         # button to show frame 2 with text
         # layout2
-        button1 = tk.Button(self, text ="<<<<>>>>", height = 2, width = 7, command = quit).grid(row = 5, column = 0, padx = 10, pady = 10)
+        logOutButton = tk.Button(self, text =" Log Out ", command = lambda : controller.show_frame(LoginPage)).grid(row = 5, column = 0, padx = 10, pady = 10)
+        
+        placeHolder = tk.Button(self, text ="All-Events", height = 2, width = 7, command= UserPage.showAllEvents).grid(row = 5, column = 1, padx = 10, pady = 10)
 
-        button2 = tk.Button(self, text =" Log Out ", command = lambda : controller.show_frame(LoginPage)).grid(row = 5, column = 1, padx = 10, pady = 10)
+        newEventButton = tk.Button(self, text ="Create-New", command = UserPage.makeNewEvent).grid(row = 5, column = 2, padx = 10, pady = 10)
 
-        button3 = tk.Button(self, text ="<<<<>>>>").grid(row = 5, column = 2, padx = 10, pady = 10)
+        myEventsButton = tk.Button(self, text ="Rsvp'd-Events", command = lambda: UserPage.initialize).grid(row = 5, column = 3, padx = 10, pady = 10)
 
-        button4 = tk.Button(self, text ="New-Event", command = UserPage.makeNewEvent).grid(row = 5, column = 3, padx = 10, pady = 10)
-
-        button5 = tk.Button(self, text ="<<<<>>>>").grid(row = 5, column = 4, padx = 10, pady = 10)
+        hostedEventsButton = tk.Button(self, text ="Hosted-Events", command = lambda: UserPage.initializeH).grid(row = 5, column = 4, padx = 10, pady = 10)
 
 
-        button7 = tk.Button(self, text ="Next-2wk", command=lambda: UserPage.forward2(self, dayTracker, m)).grid(row = 5, column = 5, padx = 10, pady = 10)
+        nxtWeekButton = tk.Button(self, text ="Next-2wk", command=lambda: UserPage.forward2(self, dayTracker, m)).grid(row = 5, column = 6, padx = 10, pady = 10)
 
-        button8 = tk.Button(self, text ="Prev-2wk", command=lambda:UserPage.back2(self, dayTracker, m)).grid(row = 5, column = 6, padx = 10, pady = 10)
+        prvWeekButton = tk.Button(self, text ="Prev-2wk", command=lambda:UserPage.back2(self, dayTracker, m)).grid(row = 5, column = 5, padx = 10, pady = 10)
 
         
         
@@ -276,20 +262,22 @@ class UserPage(tk.Frame):
         #date1 = datetime(2017, 6, 21, 18, 25, 30) constructor example
         global creationGui
         creationGui = tk.Tk()
-        variableTitle = tk.StringVar()
+        
         creationGui.title("Create A New Event")
 
-
         LabelTitle = tk.Label(creationGui, text ="Please Enter your events Name:->").grid(row=1, column =1)
-        TitleIn = tk.Entry(creationGui, textvariable = variableTitle).grid(row=1, column=2)
+        
+        
+        TextTitle = scrolledtext.ScrolledText(creationGui, wrap = tk.WORD, width = 10, height = 1, font = ("Times New Roman",15))
+        TextTitle.grid(row=1, column=2)
+        
         TextDes = scrolledtext.ScrolledText(creationGui, wrap = tk.WORD, width = 20, height = 10, font = ("Times New Roman",15))
         TextDes.grid(row=7, column =2)
+        
 
-
-        dayList=range(1,32)
         dayK =tk.IntVar()
         Labelday = tk.Label(creationGui, text ="Day Of :").grid(row=2, column =1)
-        entryDay = tk.OptionMenu(creationGui, dayK, *dayList)
+        entryDay = tk.OptionMenu(creationGui, dayK, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31)
         entryDay.config(width=5, font=('Arial', 8))
         entryDay.grid(row=2, column =2)
         
@@ -298,8 +286,6 @@ class UserPage(tk.Frame):
         monthsList=["January","February","March","April","May","June","July","August","September","October","November","December"]
         LabelMonth = tk.Label(creationGui, text ="Month Of: ").grid(row=3, column =1)
         monthOfCB = tk.StringVar()
-        
-        monthOfCB.set(monthsList[0])
         monthOptions = tk.OptionMenu(creationGui, monthOfCB, *monthsList)
         monthOptions.config(width=25, font=('Arial', 12))
         monthOptions.grid(row=3, column=2)
@@ -314,56 +300,69 @@ class UserPage(tk.Frame):
             
         LabelHour = tk.Label(creationGui, text ="Hour Of: ").grid(row=5, column =1)
         HourVar = tk.IntVar()
-        hourOfEntry = tk.Entry(creationGui, textvariable=HourVar).grid(row=5, column =2)
+        hourOfEntry = tk.OptionMenu(creationGui, HourVar, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+        hourOfEntry.config(width=5, font =('Arial',12))
+        hourOfEntry.grid(row=5, column =2)
         
         doN=tk.StringVar()
-        dayNight = ttk.Combobox(creationGui, width  = 10, textvariable=doN)
-        dayNight['values'] = ('AM','PM')
+        dayNight = tk.OptionMenu(creationGui, doN, "AM","PM")
+        dayNight.config(width = 3, font=('Arial',12))
         dayNight.grid(row=5, column =3)
-        
-        if(HourVar!=''):
-            hour=int(HourVar.get())
-        else:
-            hour=0
-        
-        if doN.get()=='PM':
-            hour = hour+12
-        elif doN.get()=='AM':
-            hour=hour
-        else:
-            print('initial command run')
             
             
             
 
         Label_Location = tk.Label(creationGui, text ="Location: ").grid(row=6, column =1)
         locationVar = tk.StringVar()
-        locationOfCB = ttk.Combobox(creationGui, width = 40, textvariable = locationVar) 
-        locationOfCB['values'] = ('614 Main St---Room A - Chrysler Building',  '24 Center Ct. --- Gymnasium')
+        locationOfCB = tk.OptionMenu(creationGui,locationVar, '614 Main St---Room A - Chrysler Building',  '24 Center Ct. --- Gymnasium') 
+        locationOfCB.config(width=30, font=('Arial',12))
         locationOfCB.grid(row=6, column =2)
-        locationNumber=0
-        if (locationVar.get() == '24 Center Ct. --- Gymnasium'):
-            locationNumber=1
-        else:
-            locationNumber=0
+        
 
         
         Labeld = tk.Label(creationGui, text ="Please Enter A \nThoughful Description").grid(row=7, column =1)
 
-        
+        def findTime(hourV, dayoN):
+            print("----------inside findTime-------------------")
+            print("hour")
+            print(hourV.get())
+            print("am pm..?")
+            print(dayoN.get())
+            if dayoN.get()=='PM':
+                return hourV.get()+12
+            elif dayoN.get()=='AM':
+                return hourV.get()
+            else:
+                print("AM PM NOT SELECTED")
+                print(dayoN.get)
+                return hourV.get()
             
 
         
-        
+        def findLocationNumber(location_Var):
+            print("---find location helper function-----")
+            print(location_Var.get())
+            if (location_Var.get() == '24 Center Ct. --- Gymnasium'):
+                locationNumber=1
+                print("Location GyM")
+                return 1
+            else:
+                locationNumber=0
+                print("Location Room A")
+                return 0
+            
         
        
         print('the year')
         print(i.get())
-        
+        print("title passing ..")
+        print(TextTitle.get("1.0",tk.END))
         
         
         CreateButton = tk.Button(creationGui, text="CreateEvent",
-                                 command=lambda:UserPage.createEvent(i.get(),UserPage.findMonth(monthOfCB.get()), dayK.get(), hour, 0, 0, variableTitle.get(), TextDes.get("1.0",  tk.END), locationNumber)).grid(row = 9, column = 2, padx=5, pady=5)
+                                 command=lambda:[UserPage.createEvent(i.get(),UserPage.findMonth(monthOfCB.get()),
+                                                                      dayK.get(), findTime(HourVar, doN), 0, 0, TextTitle.get("1.0",tk.END),
+                                                                      TextDes.get("1.0",  tk.END), findLocationNumber(locationVar))]).grid(row = 9, column = 2, padx=5, pady=5)
         exitButton = tk.Button(creationGui, text="Exit", command=creationGui.destroy).grid(row = 10, column = 2, padx=5, pady=5)
         creationGui.mainloop()
         
@@ -408,30 +407,72 @@ class UserPage(tk.Frame):
         return monthNumber
         #yearInt, monthNumber, day, hour, 0, 0
     def createEvent(y, mN, d, h, mins, secs, TitleIN, TxtD, location):
+        print("----------------create Event-----------------------")
+        print("Year")
+        print(y)
+        print("MonthNumber")
+        print(mN)
         print("The day is ")
         print(d)
+        print("Title in is ..")
+        print(TitleIN)
+        print("Description")
+        print(TxtD)
+        print("location")
+        print(location)
+        print("Hour of event")
+        print(h)
+        
         #start_datetime, description, name
         eventDateTime = datetime(y,mN,d,h,mins,secs)
         myEvent = event.Event(eventDateTime, TxtD, TitleIN)
         intEventId = myEvent.getId(myEvent)
         myEvent.add_location(location)
-        makeEventUserNow = event.EventUser(intEventId, currentId, True)
+        makeEventUserNow = event.EventUser(intEventId, currentId, False)
+        print("EventUserCreated")
+        UserPage.initialize()
         
-        UserPage.initialize(True)
-        
-        print("Create Event Function")
     def cancel():
         print("cancel Function")
         print(e_id)
+
+
+
     def checkDay(datetimei):
         print("entered checkday function")
-    def createCalendar(direction):
-        print("Calendar")
-        
-    def  initialize(innerFunctionCall=False):
+        print(datetimei.day)
         
         
+    def showAllEvents():
+        print("-------creating all events Window gui-------------")
+
+
+
         
+    def addSelfEventRoster(users_id_num, event_num):
+        print("-------adding self roster--------")
+
+
+        
+    def initialize():
+        print("----------------initialize function-----------------------")
+        print(currentId)
+        global myEvents
+        myEvents=list()
+        for eu in data.event_users:
+            if currentId == eu['user_id']:
+                myEvents.append(eu['event_id'])
+
+        global eventDis
+        eventDis=list()
+        for e in data.events:
+            if e['id'] in myEvents:
+                eventDis.append(e['name'])
+
+        print('is myEvents Empty?')
+        print(len(myEvents)==0)
+        print('is myDes Empty?')
+        print(len(eventDis)==0)
         eventGui = tk.Tk()
         eventGui.title("My-Events")
         print("initializing in method initialize now----")
@@ -451,11 +492,6 @@ class UserPage(tk.Frame):
 
         exitButton = tk.Button(eventGui, text="Exit", command= eventGui.destroy).grid(row = len(myEvents)+1, column = 0, padx=5, pady=5)
         eventGui.mainloop()
-        def closeEventGui():
-            eventGui.destory
-
-        if (innerFunctionCall==True):
-            closeEventGui()
 
         
 
@@ -463,7 +499,8 @@ class UserPage(tk.Frame):
 
         
      
-        
+    def initializaH():
+        print("Hosted Events Initilize Button pressed")
 
         
 class AdminPage(tk.Frame):
