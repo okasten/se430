@@ -448,7 +448,7 @@ class UserPage(tk.Frame):
         myEvent = event.Event(eventDateTime, TxtD, TitleIN)
         intEventId = myEvent.getId(myEvent)
         myEvent.add_location(location)
-        makeEventUserNow = event.EventUser(intEventId, currentId, False)
+        makeEventUserNow = event.EventUser(intEventId, currentId, True)
         print("EventUserCreated")
         UserPage.initialize()
         
