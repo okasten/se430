@@ -5,6 +5,7 @@ from datetime import *
 import event  #our Event Class
 import user
 import data
+from functools import partial
 #pur User Class
 
 
@@ -128,7 +129,7 @@ class LoginPage(tk.Frame):
 
 
 
-        LoginButton = ttk.Button(self, text ="Login to Account", command = lambda :LoginPage.Authenticate(controller, EntryEmail.get(), EntryPass.get())).grid(row = 6, column = 0, padx = 10, pady = 10)
+        LoginButton = ttk.Button(self, text ="Login to Account", command = lambda :[LoginPage.Authenticate(controller, EntryEmail.get(), EntryPass.get()), UserPage.showName()]).grid(row = 6, column = 0, padx = 10, pady = 10)
         QuitButton = ttk.Button(self, text ="Quit",command =quit).grid(row = 6, column = 1, padx = 10, pady = 10)
         Register = ttk.Button(self, text ="Register NEW", command = lambda :controller.show_frame(RegistrationPage)).grid(row = 6, column = 2, padx = 10, pady = 10)
 
@@ -170,24 +171,30 @@ class UserPage(tk.Frame):
         m = tk.StringVar()
         month = months[startingDay.month -1]
         m.set(month)
+        monthString = m.get()
         
         monthLabel = tk.Label(self, textvariable=m, font=('Arial',25)).grid(row= 1,column=7)
         
         global dayTracker
         dayTracker=0
-        
+        global buttonsList
+        buttonsList= list()
         counter =0
-        
         for i in range(0,7):
             for j in range(1,3):
                 
                 calcDay = datetime.now() + timedelta(days = counter)
                 numericalDay = str(calcDay.day)+"th"
+                numDay= int(str(calcDay.day))
+
                 
                 print(calcDay)
-                self.button = tk.Button(self, text = numericalDay, height =3, width=5, command = lambda: self.checkDay(calcDay)).grid(row = j, column = i, padx = 5, pady = 5)
+                button = tk.Button(self, text = numericalDay, height =3, width=5, command = partial(UserPage.checkDay, numDay, monthString)).grid(row = j, column = i, padx = 5, pady = 5)
                 counter=counter+1
-               
+                buttonsList.append(button)
+                
+        for b in buttonsList:
+            print(b)
 
         # button to show frame 2 with text
         # layout2
@@ -197,9 +204,9 @@ class UserPage(tk.Frame):
 
         newEventButton = tk.Button(self, text ="Create-New", command = UserPage.makeNewEvent).grid(row = 5, column = 2, padx = 10, pady = 10)
 
-        myEventsButton = tk.Button(self, text ="Rsvp'd-Events", command = lambda: UserPage.initialize).grid(row = 5, column = 3, padx = 10, pady = 10)
+        myEventsButton = tk.Button(self, text ="Rsvp'd-Events", command = lambda: UserPage.initialize()).grid(row = 5, column = 3, padx = 10, pady = 10)
 
-        hostedEventsButton = tk.Button(self, text ="Hosted-Events", command = lambda: UserPage.initializeH).grid(row = 5, column = 4, padx = 10, pady = 10)
+        hostedEventsButton = tk.Button(self, text ="Hosted-Events", command = lambda: UserPage.initializeH()).grid(row = 5, column = 4, padx = 10, pady = 10)
 
 
         nxtWeekButton = tk.Button(self, text ="Next-2wk", command=lambda: UserPage.forward2(self, dayTracker, m)).grid(row = 5, column = 6, padx = 10, pady = 10)
@@ -207,6 +214,16 @@ class UserPage(tk.Frame):
         prvWeekButton = tk.Button(self, text ="Prev-2wk", command=lambda:UserPage.back2(self, dayTracker, m)).grid(row = 5, column = 5, padx = 10, pady = 10)
 
         
+        #nameWindow
+
+    def showName():
+        nameGui= tk.Tk()
+        textVarName=''
+        for names in data.users:
+            if currentId == names['id']:
+                textVarName=names['name']
+        labelName=tk.Label(nameGui, text=textVarName, font=LARGEFONT).grid(row=0, column=0)
+        nameGui.mainloop()
         
 
         ###after column 6 start at row 0 to how ever many events, we create a table of events that User has rsvp'd to using data file
@@ -221,6 +238,7 @@ class UserPage(tk.Frame):
         startingDay2 = datetime.now()+timedelta(days=dayTracker)
         month = months[startingDay2.month -1]
         monthV.set(month)
+        monStr = monthV.get()
         
         counter2 =dayTracker
         for i2 in range(0,7):
@@ -228,9 +246,10 @@ class UserPage(tk.Frame):
                 
                 calcDay = datetime.now() + timedelta(days = counter2)
                 numericalDay = str(calcDay.day)+"th"
+                numDay= int(str(calcDay.day))
                 
                 print(calcDay)
-                button = tk.Button(self, text = numericalDay, height =3, width=5, command = lambda: self.checkDay(calcDay)).grid(row = j2, column = i2, padx = 5, pady = 5)
+                button = tk.Button(self, text = numericalDay, height =3, width=5, command = partial(UserPage.checkDay, numDay, monStr)).grid(row = j2, column = i2, padx = 5, pady = 5)
                 counter2=counter2+1
                 
     def back2(self, dayT, monthV2):
@@ -244,6 +263,7 @@ class UserPage(tk.Frame):
         startingDay2 = datetime.now()+timedelta(days=dayTracker)
         month = months[startingDay2.month -1]
         monthV2.set(month)
+        monStr2 = monthV2.get()
 
         
         counter2 =dayTracker
@@ -252,9 +272,9 @@ class UserPage(tk.Frame):
                 
                 calcDay = datetime.now() + timedelta(days = counter2)
                 numericalDay = str(calcDay.day)+"th"
-                
+                numDay= int(str(calcDay.day))
                 print(calcDay)
-                button = tk.Button(self, text = numericalDay, height =3, width=5, command = lambda: self.checkDay(calcDay)).grid(row = j2, column = i2, padx = 5, pady = 5)
+                button = tk.Button(self, text = numericalDay, height =3, width=5, command = partial(UserPage.checkDay, numDay, monStr2)).grid(row = j2, column = i2, padx = 5, pady = 5)
                 counter2=counter2+1
         
     def makeNewEvent():
@@ -432,25 +452,167 @@ class UserPage(tk.Frame):
         print("EventUserCreated")
         UserPage.initialize()
         
-    def cancel():
-        print("cancel Function")
-        print(e_id)
+    def cancel(stringDesEvent):
+        print("-----------cancel Function---------")
+        print("to delete This event ID ..")
+        print(stringDesEvent)
+        target=-1
+        print("Current USer ID")
+        print(currentId)
+
+        for et in eventDis:
+            
+            if et[1]==stringDesEvent:
+                print("EVENT MATCH FOUND STARTING DELETE")
+                print("et[0] is equal to..")
+                print(et[0])
+                print("et[1] is ..")
+                print(et[1])
+                target=et[1]
+        indexTarget=0
+        for evUser in event.event_users:
+            if evUser['event_id']==target:
+                if evUser['user_id']==currentId:
+                    break;
+            indexTarget+=1
+        print(indexTarget)
+        print(event.event_users[indexTarget])
+        event.event_users.pop(indexTarget)
+        print("You have been removed from Event Roster")
+        
+    def findT(dayNight, hourSelection):
+        return dayNight+hourSelection
 
 
 
-    def checkDay(datetimei):
-        print("entered checkday function")
-        print(datetimei.day)
+    def checkDay(dayN, monthN):
+        print("-------entered checkday function-----------")
+        print(dayN)
+        print(monthN)
+        dayGui = tk.Tk()
+        titleString = "Make New Event: "+str(monthN)+"-"+str(dayN)+"-2021"
+        dayGui.title(titleString)
+        
+        monthNumber = UserPage.findMonth(monthN)
+        dayNumber= dayN
+        
+        l = tk.IntVar(dayGui)
+        tk.Radiobutton(dayGui, text="Room A- Chrysler Building", padx=20, value=1, variable =l, command = l.set(1)).grid(row=3, column =1)
+        tk.Radiobutton(dayGui, text="Gymnasium", padx=20, value=0, variable =l, command = l.set(0)).grid(row=3, column =2)
+        
+
+        labelTday = tk.Label(dayGui, text="Title   : >>").grid(row=4, column=1)
+        titleText = scrolledtext.ScrolledText(dayGui, wrap = tk.WORD, width = 20, height = 1, font = ("Times New Roman",15))
+        titleText.grid(row=4, column=2)
+        
+         
+        
+        DescL = tk.Label(dayGui, text="Description: >>").grid(row=5, column=1)
+        desText = scrolledtext.ScrolledText(dayGui, wrap = tk.WORD, width = 20, height = 10, font = ("Times New Roman",15))
+        desText.grid(row=5, column =2)
+
+
+
+        timeLabel = tk.Label(dayGui, text="select time").grid(row=6, column=1)
+        time = tk.IntVar()
+        timeOM = tk.OptionMenu(dayGui, time, 1,2,3,4,5,6,7,8,9,10,11,12)
+        timeOM.config(width=2, font=('Arial',12))
+        timeOM.grid(row=6, column=2)
+
+        
+        amPMvar = tk.IntVar()
+        pmRB = tk.Radiobutton(dayGui, text="PM", value =12, command = amPMvar.set(12), ).grid(row=7, column=1)
+        amRB = tk.Radiobutton(dayGui, text="AM", value =0, command= amPMvar.set(0)).grid(row=7, column=2)
+
+        hourint = UserPage.findT(time.get(), amPMvar.get())
+
+
+
+        submitButton = tk.Button(dayGui, text="submit", command =lambda: UserPage.checkDayEventCreator(2021, monthNumber, dayNumber, 0, 0, 0, l.get(), titleText.get("1.0",tk.END), desText.get("1.0", tk.END)))
+        submitButton.grid(row =8, column =2, padx=10, pady=10)
+        exitButton = tk.Button(dayGui, text="exit", command= dayGui.destroy).grid(row=8, column=0, padx=10, pady=10)
+        
+
+        
+        
+
+        
+
+
+
+        dayGui.mainloop()
+        
+    
+        
+    def checkDayEventCreator(yr, mnN, dayNm, hrz, Mins_in, Secs_in, loc_Numb, ttStr, d_Str):
+        print("--------inside checkdayevent creatorrr_---------")
+        print("year")
+        print(yr)
+        print("month")
+        print(mnN)
+        print("day")
+        print(dayNm)
+        print(Mins_in)
+        print(Secs_in)
+        print("loc number")
+        print(loc_Numb)
+        print("title")
+        print(ttStr)
+        print("Descript:")
+        print(d_Str)
+
+        datetime_DayGui = datetime(yr,mnN,dayNm,hrz, Mins_in, Secs_in)
+        print("newevents__datetimeObject--created___")
+
+        newEvent = event.Event(datetime_DayGui, d_Str, ttStr,)
+        print("New Event Created")
+        dayGui_eventId = newEvent.getId(newEvent)
+        print("Event ID Extracted")
+        newEvent.add_location(loc_Numb)
+        print("location added")
+
+        newUserEvent = event.EventUser(dayGui_eventId, currentId, True)
+        print("eventUserObject created")
+        return
         
         
     def showAllEvents():
+        #iterate through events - if were not 
         print("-------creating all events Window gui-------------")
+    
+        notRsvp = list()
+        myEs= list()
+        resvButtons = list()
+        for e in event.event_users:
+            if e['user_id']==currentId:
+                myEs.append(e['event_id'])
+        for e2 in event.events:
+            if e2['id'] not in myEs:
+                notRsvp.append(e2)
+
+        showAll = tk.Tk()
+        showAll.title("All Events Available")
+        
+        for i in range(0,len(notRsvp)):
+            labeli= tk.Label(showAll, text = notRsvp[i]['name']).grid(row=i, column=1)
+            eventInt = notRsvp[i]['id']
+            button= tk.Button(showAll, text="RSVP?", command=partial(UserPage.addSelfEventRoster, eventInt, i)).grid(row=i, column=2)
+            resvButtons.append(button)
+        showAll.mainloop()
 
 
 
         
-    def addSelfEventRoster(users_id_num, event_num):
+    def addSelfEventRoster(event_num, buttonNum):
         print("-------adding self roster--------")
+        print("Button Number")
+        print(buttonNum)
+        print("eventNumber")
+        print(event_num)
+        print("userId")
+        print(currentId)
+        data.event_users.append({'event_id':event_num,'user_id':currentId,'is_host':False})
+        UserPage.initialize()
 
 
         
@@ -467,7 +629,7 @@ class UserPage(tk.Frame):
         eventDis=list()
         for e in data.events:
             if e['id'] in myEvents:
-                eventDis.append(e['name'])
+                eventDis.append((e['name'], e['id']))
 
         print('is myEvents Empty?')
         print(len(myEvents)==0)
@@ -478,13 +640,14 @@ class UserPage(tk.Frame):
         print("initializing in method initialize now----")
         print(currentUser)
         print('currentID:'+str(currentId))
+
         if (len(myEvents)!=0):
-        
             print('length of event Dis list')
             print(len(eventDis))
             for num in range(0,len(myEvents)):
-                label = tk.Label(eventGui, text=eventDis[num] ).grid(row = num, column = 0, padx =5, pady=5)
-                button = tk.Button(eventGui,text='Cancel RSVP', command=lambda:UserPage.cancel).grid(row=num, column = 1, padx=5, pady =5)
+                label = tk.Label(eventGui, text=eventDis[num][0] ).grid(row = num, column = 0, padx =5, pady=5)
+                eventDPass = int(eventDis[num][1])
+                button = tk.Button(eventGui,text='Cancel RSVP', command=partial(UserPage.cancel, eventDPass)).grid(row=num, column = 1, padx=5, pady =5)
                 
         else:
             print("No EVENTS")
@@ -496,11 +659,75 @@ class UserPage(tk.Frame):
         
 
         
+    def updateTime(eventIdinteger):
+        print("--------Time Update-------")
+        updateTimeGui=tk.Tk()
+        labelp=tk.Label(updateTimeGui, text="Please Select A Time", font=('Arial',20)).grid(row=1, column= 0)
+        tV = tk.IntVar()
+        tk.Radiobutton(updateTimeGui, text="1:00", value =1, variable = tV, command = tV.set(1)).grid(row=0,column=1)
+        tk.Radiobutton(updateTimeGui, text="2:00", value =2, variable = tV, command = tV.set(1)).grid(row=1,column=1)
+        tk.Radiobutton(updateTimeGui, text="3:00", value =3, variable = tV, command = tV.set(1)).grid(row=2,column=1)
+        tk.Radiobutton(updateTimeGui, text="4:00", value =4, variable = tV, command = tV.set(1)).grid(row=3,column=1)
+        tk.Radiobutton(updateTimeGui, text="5:00", value =5, variable = tV, command = tV.set(1)).grid(row=4,column=1)
+        tk.Radiobutton(updateTimeGui, text="6:00", value =6, variable = tV, command = tV.set(1)).grid(row=5,column=1)
+        tk.Radiobutton(updateTimeGui, text="7:00", value =7, variable = tV, command = tV.set(1)).grid(row=6,column=1)
+        tk.Radiobutton(updateTimeGui, text="8:00", value =8, variable = tV, command = tV.set(1)).grid(row=7,column=1)
+        tk.Radiobutton(updateTimeGui, text="9:00", value =9, variable = tV, command = tV.set(1)).grid(row=8,column=1)
+        tk.Radiobutton(updateTimeGui, text="10:00", value =10, variable = tV, command = tV.set(1)).grid(row=9,column=1)
+        tk.Radiobutton(updateTimeGui, text="11:00", value =11, variable = tV, command = tV.set(1)).grid(row=10,column=1)
+        tk.Radiobutton(updateTimeGui, text="12:00", value =12, variable = tV, command = tV.set(1)).grid(row=11,column=1)
+        amPM= tk.IntVar()
+        tk.Radiobutton(updateTimeGui, text="AM", value =0, variable = amPM, command = amPM.set(1)).grid(row=13,column=0)
+        tk.Radiobutton(updateTimeGui, text="PM", value =12, variable = amPM, command = amPM.set(1)).grid(row=13,column=1)
+        updateTimeGui.mainloop()
 
         
+
+
+    def updateDay():
+        print("--------Time Day-------")
+    def updateTit(intIdEvent):
+        update_Tit= tk.Tk()
+        updateTitle = scrolledtext.ScrolledText(update_Tit, wrap = tk.WORD, width = 10, height = 1, font = ("Times New Roman",12))
+        print("--------Time title-------")
+        for e in data.events:
+            if e['id']==intIdEvent:
+                e['name']=updateTitle.get("1.0",tk.END)
+        UserPage.Initialize()
+                
+                
+
+        
+    def updateD():
+        print("--------Time description-------")
+        
      
-    def initializaH():
+    def initializeH():
         print("Hosted Events Initilize Button pressed")
+        hostedGui = tk.Tk()
+        hostedGui.title("My Hosted Events")
+        global eventDs
+        eventDs = list()
+        global userHostIds
+        userHostIds = list()
+        for evU in event.event_users:
+            if evU['user_id']==currentId:
+                if evU['is_host']==True:
+                    userHostIds.append(evU['event_id'])
+        for eDs in event.events:
+            if eDs['id'] in userHostIds:
+                eventDs.append((eDs['name'],eDs['id']))
+        if(len(eventDs)==0):
+            tk.Label(hostedGui, text="Hosting No Events", font=LARGEFONT).grid(row=0,column=0)
+
+        for u in range(0, len(eventDs)):
+            tk.Label(hostedGui, text=eventDs[u][0]).grid(row=u, column =0, padx=10, pady=10)
+            eventIdInt = eventDs[u][1]
+            butTime=tk.Button(hostedGui, text= "Update Time", command= partial(UserPage.updateTime, eventIdInt)).grid(row=u, column =1)
+            butDay=tk.Button(hostedGui, text= "Update Day", command= partial( UserPage.updateDay)).grid(row=u, column =2)
+            buttitle=tk.Button(hostedGui, text= "Update Title", command= partial(UserPage.updateTit, eventIdInt)).grid(row=u, column =3)
+            butDes=tk.Button(hostedGui, text= "Update Desc:", command= lambda: UserPage.updateD).grid(row=u, column =4)
+        hostedGui.mainloop()
 
         
 class AdminPage(tk.Frame):
